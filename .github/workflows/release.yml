@@ -1,21 +1,61 @@
-name: Rust
+name: Release
 
 on:
   push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
-
-env:
-  CARGO_TERM_COLOR: always
+    tags:
+      - "v*"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    name: Build and Release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v3
-      - name: Build
-        run: cargo build --verbose
-    # - name: Run tests
-    #   run: cargo test --verbose
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Build Release
+        run: cargo build --release
+      - name: Archive Release
+        run: |
+          zip -j find-pep-${{ runner.os }}.zip target/release/find-pep${{ matrix.extension }}
+        shell: bash
+        env:
+          extension: ${{ matrix.extension }}
+      - name: Upload Release Asset
+        uses: actions/upload-artifact@v2
+        with:
+          name: find-pep-${{ runner.os }}.zip
+          path: find-pep-${{ runner.os }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./*.zip
+          asset_name: find-pep-${{ runner.os }}.zip
+          asset_content_type: application/zip
