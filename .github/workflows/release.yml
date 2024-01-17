@@ -1,68 +1,21 @@
-name: Release
+name: Rust
 
 on:
-  release:
-    types:
-      - created
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        os: [macos, linux, windows]
-        arch: [arm64, x64]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Rust
-        uses: actions/setup-rust@v1
-
-      - name: Install cross
-        run: cargo install cross
-
-      - name: Build release binaries
-        run: cross build --release --target ${{ matrix.os }}-{{ matrix.arch }}
-
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: find-pep-${{ matrix.os }}-${{ matrix.arch }}
-          path: target/${{ matrix.os }}-${{ matrix.arch }}/release/find-pep
-
-  release:
-    runs-on: ubuntu-latest
-
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: find-pep-${{ matrix.os }}-${{ matrix.arch }}
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            target/${{ matrix.os }}-${{ matrix.arch }}/release/find-pep
-          tag_name: ${{ github.event_name }}-v${{ github.run_number }}
-          title: ${{ github.event_name }} Release
-
-  matrix:
-    include:
-      - os: macos
-        arch: arm64
-      - os: macos
-        arch: x64
-      - os: linux
-        arch: x64
-      - os: windows
-        arch: x64
+      - uses: actions/checkout@v3
+      - name: Build
+        run: cargo build --verbose
+    # - name: Run tests
+    #   run: cargo test --verbose
