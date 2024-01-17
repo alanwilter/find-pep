@@ -11,35 +11,42 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            extension: ""
+          - os: windows-latest
+            extension: ".exe"
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+      - uses: actions/checkout@v4
+      # - name: Set up Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: stable
+      #     profile: minimal
+      #     override: true
       - name: Build Release
         run: cargo build --release
-      - name: Archive Release
+      - name: Archive Release (Linux)
+        if: runner.os == 'Linux'
         run: |
-          zip -j find-pep-${{ runner.os }}.zip target/release/find-pep${{ matrix.extension }}
-        shell: bash
-        env:
-          extension: ${{ matrix.extension }}
+          zip -j find-pep-${{ matrix.os }}.zip target/release/find-pep${{ matrix.extension }}
+      - name: Archive Release (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Compress-Archive -Path target/release/find-pep${{ matrix.extension }} -DestinationPath find-pep-${{ matrix.os }}.zip
+        shell: pwsh
       - name: Upload Release Asset
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: find-pep-${{ runner.os }}.zip
-          path: find-pep-${{ runner.os }}.zip
+          name: find-pep-${{ matrix.os }}.zip
+          path: find-pep-${{ matrix.os }}.zip
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
