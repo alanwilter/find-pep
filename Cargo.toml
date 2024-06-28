@@ -2,7 +2,7 @@
 authors = ["Alan Wilter <alanwilter@gmail.com>"]
 description = "A CLI tool for find peptides in UniProt fasta files"
 name = "fasta-tools"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 repository = "https://github.com/alanwilter/find-pep"
 categories = ["command-line-utilities"]
