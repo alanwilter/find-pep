@@ -1,8 +1,8 @@
 [package]
 authors = ["Alan Wilter <alanwilter@gmail.com>"]
 description = "A CLI tool for find peptides in UniProt fasta files"
-name = "find-pep"
-version = "0.1.0"
+name = "fasta-tools"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/alanwilter/find-pep"
 categories = ["command-line-utilities"]
@@ -11,4 +11,15 @@ readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "find-pep"
+path = "src/find_pep.rs"
+
+[[bin]]
+name = "fasta-extractor"
+path = "src/fasta_extractor.rs"
+
 [dependencies]
+clap = { version = "4.5.7", features = ["derive"] }
+num_cpus = "1.16.0"
+rayon = "1.10.0"
