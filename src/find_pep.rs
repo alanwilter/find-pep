@@ -1,16 +1,25 @@
+use clap::Parser;
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
-        eprintln!("Usage: find-pep <input_fasta.fasta> <input_list.txt>");
-        std::process::exit(1);
-    }
+/// Command-line arguments structure
+#[derive(Parser, Debug)]
+#[command(author, version, about = "A CLI tool for find peptides in UniProt fasta files", long_about = None)]
+struct Args {
+    /// Path to the input FASTA file (required)
+    #[arg(required = true)]
+    input: String,
 
-    let fasta_content = fs::read_to_string(&args[1])?;
-    let peptides_content = fs::read_to_string(&args[2])?;
+    /// Path to the Input peptide list file (required)
+    #[arg(required = true)]
+    list: String,
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let opts: Args = Args::parse();
+
+    let fasta_content = fs::read_to_string(&opts.input)?;
+    let peptides_content = fs::read_to_string(&opts.list)?;
 
     let proteins = parse_fasta(&fasta_content);
     let peptides = peptides_content.lines().collect::<Vec<_>>();
